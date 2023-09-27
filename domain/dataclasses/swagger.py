@@ -1,8 +1,8 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from dataclasses import dataclass
+
 
 
 class UserInfo(BaseModel):
@@ -114,53 +114,90 @@ class BodyInfo(BaseModel):
 class PerevalInfo(BodyInfo):
     status: bool = Field(description='Статус прохождения модерации', example=False)
 
-
-@dataclass
-class User:
-    phone: str
-    fam: str
-    name: str
-    id: Optional[int] = None
-    email: Optional[str] = None
-    otc: Optional[str] = None
+class BaseResponse(BaseModel):
+    status: int = Field(description='Статус выполнения HTTP запроса', example=201)
+    message: Optional[str] = Field(
+        default=None,
+        description='Сообщение об ошибке, если произошла',
+        example='TypeError'
+    )
 
 
-@dataclass
-class Coords:
-    latitude: float
-    longitude: float
-    height: int
-    id: Optional[int] = None
+class PerevalAddedResponse(BaseResponse):
+    id: Optional[int] = Field(default=None, description='ID созданной записи', example=2)
 
 
-@dataclass
-class Level:
-    winter: str
-    summer: str
-    autumn: str
-    spring: str
-    id: Optional[int] = None
+class PerevalUpdateResponse(BaseResponse):
+    state: Optional[int] = Field(default=None, description='Статус обновления записи', example=1)
 
 
-@dataclass
-class Image:
-    img: str
-    title: str
-    pereval_id: int
-    date_added: date
-    id: Optional[int] = None
+class PerevalsByUserResponse(BaseResponse):
+    pereval_data: List[PerevalInfoResponse] = Field(
+        description='Коллекция сгруппированных данных по перевалам, добавленным пользователем',
+        example=[
+            {
+                'id': 1,
+                'beauty_title': 'пер. ',
+                'title': 'Пхия',
+                'other_titles': 'Триев',
+                'connect': 'Текстовое поле',
+                'add_time': datetime.utcnow().isoformat(),
+                'coords': {
+                    'latitude': 45.3842,
+                    'longitude': 7.1525,
+                    'height': 1200
+                },
+                'level': {
+                    'winter': '2B',
+                    'summer': '1А',
+                    'autumn': '1А',
+                    'spring': '2B',
+                },
+                'images': [
+                    {
+                        'img': '\\x8534234568...',
+                        'title': 'Седловина'
+                    }
+                ],
+                'status': False
+            }
+        ]
+    )
 
 
-@dataclass
-class PerevalAdded:
-    date_added: Optional[date]
-    beauty_title: str
-    title: str
-    other_titles: str
-    connect: str
-    add_time: datetime
-    user_id: int
-    coords_id: int
-    level_id: int
-    id: Optional[int] = None
-    status: Optional[bool] = False
+class PerevalByIdResponse(BaseResponse):
+    pereval_data: Optional[BodyInfo] = Field(
+        default=None,
+        description='Данные по перевалу',
+        example={
+            'beauty_title': 'пер. ',
+            'title': 'Пхия',
+            'other_titles': 'Триев',
+            'connect': 'Текстовое поле',
+            'add_time': datetime.utcnow().isoformat(),
+            'user': {
+                'email': 'qwerty@mail.ru',
+                'fam': 'Ивнов',
+                'name': 'Иван',
+                'otc': 'Иванович',
+                'phone': '+7 999 99 99'
+            },
+            'coords': {
+                'latitude': 54.4656,
+                'longitude': 9.4577,
+                'height': 1500
+            },
+            'level': {
+                'winter': '1A',
+                'summer': '1А',
+                'autumn': '1А',
+                'spring': '2A',
+            },
+            'images': [
+                {
+                    'img': '\\x8534234568...',
+                    'title': 'Седловина'
+                }
+            ],
+        }
+    )
